@@ -1,0 +1,85 @@
+{% extends "store/main.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+        <div class="col-lg-12">
+                <div class="box-element">
+                        <a class="btn btn-outline-dark" href="{% url 'store:store' %}">&#x2190; Continue Shopping</a>
+                        <br><br>
+                        <table class="table">
+                                <tr>
+                                        <th>
+                                                <h5>Items: <strong>{{ order.get_cart_items }}</strong></h5>
+                                        </th>
+                                        <th>
+                                                <h5>Total: <strong>KES {{ order.get_cart_total|floatformat:2 }}</strong>
+                                                </h5>
+                                        </th>
+                                        <th>
+                                                {% if order.get_cart_items > 0 %}
+                                                <a style="float:right; margin:5px;" class="btn btn-success"
+                                                        href="{% url 'store:checkout' %}">Checkout</a>
+                                                {% else %}
+                                                <button style="float:right; margin:5px;" class="btn btn-secondary"
+                                                        disabled>Cart is Empty</button>
+                                                {% endif %}
+                                        </th>
+                                </tr>
+                        </table>
+                </div>
+
+                <br>
+                <div class="box-element">
+                        <div class="cart-row">
+                                <div style="flex:2"></div>
+                                <div style="flex:2"><strong>Medication / Item</strong></div>
+                                <div style="flex:1"><strong>Price</strong></div>
+                                <div style="flex:1"><strong>Quantity</strong></div>
+                                <div style="flex:1"><strong>Total</strong></div>
+                        </div>
+
+                        {% for item in items %}
+                        <div class="cart-row">
+                                <div style="flex:2">
+                                        {% if item.product.image %}
+                                        <img class="row-image" src="{{ item.product.image.url }}"
+                                                alt="{{ item.product.name }}">
+                                        {% else %}
+                                        <img class="row-image" src="{% static 'store/img/placeholder.png' %}"
+                                                alt="Placeholder">
+                                        {% endif %}
+                                </div>
+                                <div style="flex:2">
+                                        <p class="mb-0"><strong>{{ item.product.name }}</strong></p>
+                                        {% if item.product.requires_prescription %}
+                                        <span class="badge badge-danger">Rx Required</span>
+                                        {% endif %}
+                                </div>
+                                <div style="flex:1">
+                                        <p>KES {{ item.product.price|floatformat:2 }}</p>
+                                </div>
+                                <div style="flex:1">
+                                        <p class="quantity">{{ item.quantity }}</p>
+                                        <div class="quantity">
+                                                <img data-product="{{ item.product.id }}" data-action="add"
+                                                        class="chg-quantity update-cart"
+                                                        src="{% static 'store/img/arrow-up.png' %}" alt="Increase">
+                                                <img data-product="{{ item.product.id }}" data-action="remove"
+                                                        class="chg-quantity update-cart"
+                                                        src="{% static 'store/img/arrow-down.png' %}" alt="Decrease">
+                                        </div>
+                                </div>
+                                <div style="flex:1">
+                                        <p>KES {{ item.get_total|floatformat:2 }}</p>
+                                </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                                <p class="text-muted mb-0">Your pharmacy cart is currently empty.</p>
+                        </div>
+                        {% endfor %}
+                </div>
+        </div>
+</div>
+{% endblock content %}

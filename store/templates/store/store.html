@@ -1,0 +1,66 @@
+{% extends "store/main.html" %}
+{% load static %}
+
+{% block content %}
+<div class="box-element mb-4">
+	<form method="GET" action="{% url 'store:store' %}" class="form-inline justify-content-between">
+		<div class="mb-2 mb-md-0">
+			<a href="{% url 'store:store' %}"
+				class="btn btn-sm {% if not selected_category %}btn-info{% else %}btn-outline-info{% endif %}">All</a>
+			<a href="?category=OTC"
+				class="btn btn-sm {% if selected_category == 'OTC' %}btn-info{% else %}btn-outline-info{% endif %}">OTC</a>
+			<a href="?category=PRESCRIPTION"
+				class="btn btn-sm {% if selected_category == 'PRESCRIPTION' %}btn-info{% else %}btn-outline-info{% endif %}">Prescription</a>
+			<a href="?category=FIRST_AID"
+				class="btn btn-sm {% if selected_category == 'FIRST_AID' %}btn-info{% else %}btn-outline-info{% endif %}">First
+				Aid</a>
+			<a href="?category=SUPPLEMENTS"
+				class="btn btn-sm {% if selected_category == 'SUPPLEMENTS' %}btn-info{% else %}btn-outline-info{% endif %}">Supplements</a>
+			<a href="?category=PERSONAL_CARE"
+				class="btn btn-sm {% if selected_category == 'PERSONAL_CARE' %}btn-info{% else %}btn-outline-info{% endif %}">Personal
+				Care</a>
+		</div>
+		<div class="input-group">
+			<input type="text" name="q" class="form-control form-control-sm" placeholder="Search medication..."
+				value="{{ search_query }}">
+			<div class="input-group-append">
+				<button class="btn btn-sm btn-dark" type="submit">Search</button>
+			</div>
+		</div>
+	</form>
+</div>
+
+<div class="row">
+	{% for product in products %}
+	<div class="col-lg-4 mb-4">
+		{% if product.image %}
+		<img class="thumbnail" src="{{ product.image.url }}" alt="{{ product.name }}">
+		{% else %}
+		<img class="thumbnail" src="{% static 'store/img/placeholder.png' %}" alt="Placeholder">
+		{% endif %}
+		<div class="box-element product">
+			<h6>
+				<strong>{{ product.name }}</strong>
+				{% if product.requires_prescription %}
+				<span class="badge badge-danger float-right">Rx Required</span>
+				{% else %}
+				<span class="badge badge-success float-right">OTC</span>
+				{% endif %}
+			</h6>
+			<small class="text-muted">{{ product.get_category_display }} | Stock: {{ product.stock_quantity }}</small>
+			<hr>
+
+			<button data-product="{{ product.id }}" data-action="add"
+				class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
+			<a class="btn btn-outline-success" href="{% url 'store:product_detail' product.id %}">View</a>
+			<h4 style="display: inline-block; float: right;"><strong>KES {{ product.price|floatformat:2 }}</strong></h4>
+		</div>
+	</div>
+	{% empty %}
+	<div class="col-12 text-center mt-5">
+		<h5>No pharmacy products found.</h5>
+		<p>Log into <a href="/admin/">Manage Inventory</a> to add medications or clear your search filter.</p>
+	</div>
+	{% endfor %}
+</div>
+{% endblock content %}

@@ -1,0 +1,150 @@
+{% extends "store/main.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+        <div class="col-lg-6">
+                <div class="box-element" id="form-wrapper">
+                        <form id="form">
+                                <div id="user-info">
+                                        <p><strong>Patient / Customer Details:</strong></p>
+                                        <div class="form-field">
+                                                <input required class="form-control" type="text" name="name"
+                                                        placeholder="Full Name..">
+                                        </div>
+                                        <div class="form-field">
+                                                <input required class="form-control" type="email" name="email"
+                                                        placeholder="Email Address..">
+                                        </div>
+                                </div>
+
+                                <div id="shipping-info">
+                                        <hr>
+                                        <p><strong>Pharmacy Delivery Information:</strong></p>
+                                        <hr>
+                                        <div class="form-field">
+                                                <input required class="form-control" type="text" name="address"
+                                                        placeholder="Street / Estate / Building..">
+                                        </div>
+                                        <div class="form-field">
+                                                <input required class="form-control" type="text" name="city"
+                                                        placeholder="Town / City..">
+                                        </div>
+                                        <div class="form-field">
+                                                <input required class="form-control" type="text" name="state"
+                                                        placeholder="County..">
+                                        </div>
+                                        <div class="form-field">
+                                                <input required class="form-control" type="text" name="zipcode"
+                                                        placeholder="Phone Number (e.g. 0712345678)..">
+                                        </div>
+                                </div>
+
+                                <hr>
+                                <input id="form-button" class="btn btn-success btn-block" type="submit"
+                                        value="Continue to Payment">
+                        </form>
+                </div>
+
+                <br>
+                <div class="box-element hidden" id="payment-info">
+                        <p><strong>Select Payment Method:</strong></p>
+                        <div class="alert alert-info py-2">
+                                <small>Pay via M-Pesa Till/Paybill upon dispatch or Cash on Delivery.</small>
+                        </div>
+                        <button id="make-payment" class="btn btn-primary btn-block">Confirm & Place Pharmacy
+                                Order</button>
+                </div>
+        </div>
+
+        <div class="col-lg-6">
+                <div class="box-element">
+                        <a class="btn btn-outline-dark" href="{% url 'store:cart' %}">&#x2190; Back to Cart</a>
+                        <hr>
+                        <h3>Order Summary</h3>
+                        <hr>
+                        {% for item in items %}
+                        <div class="cart-row">
+                                <div style="flex:2">
+                                        {% if item.product.image %}
+                                        <img class="row-image" src="{{ item.product.image.url }}"
+                                                alt="{{ item.product.name }}">
+                                        {% else %}
+                                        <img class="row-image" src="{% static 'store/img/placeholder.png' %}"
+                                                alt="Placeholder">
+                                        {% endif %}
+                                </div>
+                                <div style="flex:2">
+                                        <p class="mb-0">{{ item.product.name }}</p>
+                                        {% if item.product.requires_prescription %}
+                                        <small class="text-danger font-weight-bold">Prescription Required</small>
+                                        {% endif %}
+                                </div>
+                                <div style="flex:1">
+                                        <p>KES {{ item.product.price|floatformat:2 }}</p>
+                                </div>
+                                <div style="flex:1">
+                                        <p>x{{ item.quantity }}</p>
+                                </div>
+                        </div>
+                        {% endfor %}
+                        <h5>Items: <strong>{{ order.get_cart_items }}</strong></h5>
+                        <h5>Total: <strong>KES {{ order.get_cart_total|floatformat:2 }}</strong></h5>
+                </div>
+        </div>
+</div>
+
+<script type="text/javascript">
+        var total = '{{ order.get_cart_total }}';
+
+        if (user !== 'AnonymousUser') {
+                document.getElementById('user-info').innerHTML = '';
+        }
+
+        var form = document.getElementById('form');
+        form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                document.getElementById('form-button').classList.add("hidden");
+                document.getElementById('payment-info').classList.remove("hidden");
+        });
+
+        document.getElementById('make-payment').addEventListener('click', function (e) {
+                submitFormData();
+        });
+
+        function submitFormData() {
+                var userFormData = {
+                        'name': null,
+                        'email': null,
+                        'total': total,
+                };
+
+                var shippingInfo = {
+                        'address': form.address.value,
+                        'city': form.city.value,
+                        'state': form.state.value,
+                        'zipcode': form.zipcode.value,
+                };
+
+                if (user === 'AnonymousUser') {
+                        userFormData.name = form.name.value;
+                        userFormData.email = form.email.value;
+                }
+
+                var url = "/process_order/";
+                fetch(url, {
+                        method: 'POST',
+                        headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken,
+                        },
+                        body: JSON.stringify({ 'form': userFormData, 'shipping': shippingInfo }),
+                })
+                        .then((response) => response.json())
+                        .then((data) => {
+                                alert('Order placed successfully! Your pharmacy order is being processed.');
+                                window.location.href = "{% url 'store:store' %}";
+                        });
+        }
+</script>
+{% endblock content %}
